@@ -18,6 +18,9 @@ last_attack_time = 0
 attacking = False
 last_health_check = 0
 
+# Whitelist - players the bot won't attack
+WHITELIST = ['Bot']  # Add more usernames here
+
 @On(bot, 'spawn')
 def handle(*args):
 	global movements
@@ -42,6 +45,13 @@ def handle(*args):
 				except: 
 					print("I couldn't reach you")
 					bot.chat("I couldn't reach you")
+			elif message.startswith('attack '):
+				# Extract the target username
+				target_username = message.replace('attack ', '').strip()
+				if target_username:
+					attackplayer2(target_username)
+				else:
+					bot.chat("Who should I attack?")
 			elif 'attack me' in message:
 				attackplayer2(sender)
 			elif 'stop' in message:
@@ -77,10 +87,12 @@ def on_health(*args):
 		print(f"⚠️ Being attacked by: {username} (type: {attacker.type}, ID: {attacker.id})")
 		bot.chat(f"I'm being attacked by {username}!")
 		
-		# Auto attack back if not already attacking
-		if not attacking and username:
+		# Auto attack back if not already attacking and not whitelisted
+		if not attacking and username and username not in WHITELIST:
 			print(f"Fighting back against {username}!")
 			attackplayer2(username)
+		elif username in WHITELIST:
+			print(f"{username} is whitelisted, not fighting back")
 
 def get_entity_username(entity):
 	"""Get the username of a player entity"""
@@ -214,22 +226,36 @@ def stop_attacking():
 	bot.chat("Stopped attacking!")
 	print("Stopped attacking")
 
-def attackplayer2(sender):
+def attackplayer2(target_username):
 	global last_attack_time, attacking
+	
+	# Check whitelist
+	if target_username in WHITELIST:
+		bot.chat(f"{target_username} is protected!")
+		print(f"Cannot attack {target_username} - they are whitelisted")
+		return
 	
 	if not bot.pathfinder:
 		print("Pathfinder not available!")
 		bot.chat("I can't pathfind right now!")
 		return
 	
-	player = bot.players[sender]
+	if not movements:
+		print("Movements not initialized!")
+		bot.chat("I'm not ready yet!")
+		return
+	
+	# Simple bracket access for bot.players
+	player = bot.players[target_username] if target_username in bot.players else None
+	
 	if not player:
-		bot.chat(f"Can't find player {sender}")
+		bot.chat(f"Can't find player {target_username}")
+		print(f"Player {target_username} not found in bot.players")
 		return
 		
 	target = player.entity
 	if not player.entity:
-		bot.chat('I can\'t see you')
+		bot.chat(f'I can\'t see {target_username}')
 		return
 	
 	# Equip best weapon
@@ -241,12 +267,19 @@ def attackplayer2(sender):
 		except Exception as e:
 			print(f"Failed to equip weapon: {e}")
 	
-	print(f'Attacking {player.username}!')
+	bot.chat(f'Attacking {target_username}!')
+	print(f'Attacking {target_username}!')
 	attacking = True
 	
 	# Use GoalFollow to chase the player
-	bot.pathfinder.setMovements(movements)
-	bot.pathfinder.setGoal(pathfinder.goals.GoalFollow(target, 2), True)
+	try:
+		bot.pathfinder.setMovements(movements)
+		bot.pathfinder.setGoal(pathfinder.goals.GoalFollow(target, 2), True)
+	except Exception as e:
+		print(f"Failed to set pathfinding goal: {e}")
+		bot.chat("I couldn't start moving!")
+		attacking = False
+		return
 	
 	# Use physicsTick event to keep attacking while following
 	@On(bot, 'physicsTick')
@@ -256,9 +289,9 @@ def attackplayer2(sender):
 		if not attacking:
 			return
 		
-		player = bot.players[sender]
+		player = bot.players[target_username] if target_username in bot.players else None
 		if not player or not player.entity:
-			print(f"{sender} died or left!")
+			print(f"{target_username} died or left!")
 			stop_attacking()
 			return
 		
@@ -271,7 +304,50 @@ def attackplayer2(sender):
 		# Store position in variable to avoid it becoming undefined
 		target_pos = target.position
 		if not target_pos:
-			print(f"{sender} position unavailable, probably died!")
+			print(f"{target_username} position unavailable, probably died!")
+			stop_attacking()
+			return
+		
+		try:
+			distance = bot.entity.position.distanceTo(target_pos)
+		except:
+			return
+		
+		# Only attack if close enough
+		if distance <= 4:
+			eye_pos = target_pos.offset(0, target.height, 0)
+			bot.lookAt(eye_pos)
+			
+			# Attack with cooldown (500ms = 0.5 seconds)
+			current_time = time.time()
+			if current_time - last_attack_time >= 0.5:
+				bot.attack(target)
+				last_attack_time = current_time
+	
+	# Use physicsTick event to keep attacking while following
+	@On(bot, 'physicsTick')
+	def keep_attacking(*args):
+		global last_attack_time, attacking
+		
+		if not attacking:
+			return
+		
+		player = bot.players[target_username] if target_username in bot.players else None
+		if not player or not player.entity:
+			print(f"{target_username} died or left!")
+			stop_attacking()
+			return
+		
+		target = player.entity
+		
+		# Check if bot.entity and positions exist
+		if not bot.entity or not bot.entity.position:
+			return
+		
+		# Store position in variable to avoid it becoming undefined
+		target_pos = target.position
+		if not target_pos:
+			print(f"{target_username} position unavailable, probably died!")
 			stop_attacking()
 			return
 		
