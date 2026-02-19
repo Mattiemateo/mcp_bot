@@ -1,0 +1,7 @@
+Searching for oak_log...
+Found 10 oak_log blocks:
+  [0] x=-366, y=63, z=-399 (distance: 3.8)
+  [1] x=-362, y=63, z=-395 (distance: 2.7)
+  [2] x=-366, y=64, z=-399 (distance: 3.9)
+  [3] x=-362, y=64, z=-395 (distance: 2.9)
+  [4] x=-366, y=65, z=-399 (distance: 4.3)
