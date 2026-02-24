@@ -1,0 +1,84 @@
+mining log
+Arrived at log, mining...
+Equipped diamond_axe!
+[JSE] /Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:146
+
+[JSE]       throw new BridgeException(`Attempt to access '${stack.join('.')}' failed.`)
+
+[JSE]             ^
+
+[JSE] 
+
+[JSE] BridgeException [Error]: Attempt to access '' failed. Python didn't respond in time (100000ms), look above for any Python errors. If no errors, the API call hung.
+
+[JSE]     at /Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:146:13
+
+[JSE]     at waitFor (/Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:46:26)
+
+[JSE]     at async PyBridge.call (/Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:145:18)
+
+[JSE] 
+
+[JSE] Node.js v20.16.0
+
+mining log
+pickup
+Timed out get 10 nearestEntity <Thread(Thread-3 (loop), started daemon 6150615040)>
+Timed out get 189 name <Thread(Thread-3 (loop), started daemon 6150615040)>
+Timed out get 190 name <Thread(Thread-3 (loop), started daemon 6150615040)>
+Timed out get 191 name <Thread(Thread-3 (loop), started daemon 6150615040)>
+
+
+
+
+---------------------------------------------------------------------------------------
+
+
+    607
+  ],
+  passengers: [],
+  vehicle: null,
+  type: 'player',
+  name: 'player',
+  username: 'mattiemateo',
+  uuid: 'bc3e65ff-d3f5-3d9e-a091-75b57d8eaa83',
+  eyeHeight: 1.27,
+  attributes: {
+    'generic.scale': { value: 0.10000000149011612, modifiers: [] },
+    'generic.armor': { value: 0, modifiers: [Array] },
+    'generic.attack_speed': { value: 4, modifiers: [] },
+    'generic.armor_toughness': { value: 0, modifiers: [Array] },
+    'zombie.spawn_reinforcements': { value: 0, modifiers: [] },
+    'player.entity_interaction_range': { value: 3, modifiers: [] },
+    'player.block_interaction_range': { value: 4.5, modifiers: [] },
+    waypoint_transmit_range: { value: 0.2, modifiers: [] }
+  },
+  headYaw: 3.6079228131070282,
+  crouching: true,
+  [Symbol(shapeMode)]: false,
+  [Symbol(kCapture)]: false
+}
+[JSE] /Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:146
+
+[JSE]       throw new BridgeException(`Attempt to access '${stack.join('.')}' failed.`)
+
+[JSE]             ^
+
+[JSE] 
+
+[JSE] BridgeException [Error]: Attempt to access '' failed. Python didn't respond in time (100000ms), look above for any Python errors. If no errors, the API call hung.
+
+[JSE]     at /Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:146:13
+
+[JSE]     at waitFor (/Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:46:26)
+
+[JSE]     at async PyBridge.call (/Users/mateodevos/.local/share/virtualenvs/mc_bot-JSWGGOe0/lib/python3.11/site-packages/javascript/js/pyi.js:145:18)
+
+[JSE] 
+
+[JSE] Node.js v20.16.0
+
+Searching for oak_log...
+Timed out get 22 blocksByName <Thread(Thread-3 (loop), started daemon 6152548352)>
+Timed out get 129 name <Thread(Thread-3 (loop), started daemon 6152548352)>
+Timed out get 130 name <Thread(Thread-3 (loop), started daemon 6152548352)>

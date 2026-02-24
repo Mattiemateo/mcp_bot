@@ -1,3 +1,5 @@
+from turtle import pos
+
 from javascript import require, On
 from mcp.server.fastmcp import Context, FastMCP
 import asyncio
@@ -34,6 +36,11 @@ def handle(*args):
     
     # Load minecraft data for block IDs
     mcData = require('minecraft-data')(bot.version)
+    # Print oak_log info
+    oak_item = mcData.itemsByName['oak_log']
+    print(f"Oak log item ID: {oak_item.id}")
+    print(f"Oak log name: {oak_item.name}")
+    print(f"Oak log display name: {oak_item.displayName}")
     
     bot.waitForChunksToLoad()
     print("Chunks loaded!")
@@ -49,37 +56,102 @@ def handle(*args):
         print ("got", message, "from", sender)
 
         if sender != bot.username and sender:
-            if "come here" in message:
+            if "come here" == message:
                 movements = pathfinder.Movements(bot)
                 player = bot.players[sender]
                 target = player.entity
                 pos = target.position
                 bot.pathfinder.setMovements(movements)
                 try :
-                    bot.pathfinder.setGoal(pathfinder.goals.GoalNear(pos.x, pos.y, pos.z, 1))
+                    goto(pos.x, pos.y, pos.z, 1)
                 except:
                     print("fuckkkkkk")
                     bot.chat("fuckkkkk")
-            elif 'find tree' in message:
-                mine_tree(get_tree('oak'))
-            elif 'find dirt' in message:
+            elif 'find tree' == message:
+                tree = get_tree(('oak'))
+                mine_tree(tree)
+                #pickup_block()
+            elif 'find dirt' == message:
                 find_block('dirt')
-            elif 'find stone' in message:
+            elif 'find stone' == message:
                 find_block('stone')
-            elif 'goto tree' in message:
-                find_block('stone')
+            elif 'goto tree' == message:
+                find_block('tree')
+            elif "#inventory drop" in message:
+                item_to_drop = message.replace('#inventory drop ', '').strip()
+                bot.toss(885)
+                #bot.toss(134)
+            elif message == '#inventory list':
+                # List all items in inventory
+                print("\n=== INVENTORY ===")
+                bot.chat("=== INVENTORY ===")
+                items = bot.inventory.items()
+                for item in items:
+                    print(f"  - {item.name} x{item.count}")
+                    bot.chat(f"  - {item.name} x{item.count}")
+                    time.sleep(1)
+                bot.chat("=================")
+                print("=================\n")
+            elif 'open chest' in message:
+                goto(-329, 63, -376, 1)
+                #time.sleep(10)
+                deposit_chest_at_coords(-329, 63, -376)
+            elif message == 'loop tree':
+                mine_amount_trees(100)
+            elif 'pickup' in message:
+                pickup()
 
+def deposit_chest_at_coords(x, y, z):
+    """Open chest at specific coordinates."""
+    # Find blocks matching chest nearby
+    
+    # Find the chest block at those exact coordinates
+    chest_blocks = bot.findBlocks({
+        'matching': mcData.blocksByName['chest'].id,
+        'maxDistance': 64,
+        'count': 100
+    })
+    
+    # Find the one at our target coordinates
+    chest_block = None
+    for i in range(chest_blocks.length):
+        pos = chest_blocks[i]
+        if pos.x == x and pos.y == y and pos.z == z:
+            chest_block = bot.blockAt(pos)
+            break
+    
+    if not chest_block:
+        print(f"No chest found at {x}, {y}, {z}")
+        bot.chat("No chest there!")
+        return None
+    
+    print(f"Found chest: {chest_block.name}")
+    
+    # Open it
+    try:
+        container = bot.openContainer(chest_block)
+        print("Chest opened!")
+        bot.chat("Chest opened!")
+    except Exception as e:
+        print(f"Failed to open: {e}")
+        return None
+    if container:
+        # Deposit all items except tools
+        for item in bot.inventory.items():
+            if item and item.name == 'oak_log':
+                try:
+                    container.deposit(item.type, None, item.count)
+                    print(f"Deposited {item.count} of {item.name}")
+                except Exception as e:
+                    print(f"Failed to deposit {item.name}: {e}")
+        container.close()
+        print("Finished depositing!")
 
 def get_best_axe():
 	# Weapon priority order
 	axes = ['netherite_axe', 'diamond_axe', 'iron_axe', 'stone_axe', 'wooden_axe']
 	
-	# List all items in inventory
-	print("\n=== INVENTORY ===")
 	items = bot.inventory.items()
-	for item in items:
-		print(f"  - {item.name} x{item.count}")
-	print("=================\n")
 	
 	# Find best weapon
 	for axe in axes:
@@ -92,28 +164,7 @@ def get_best_axe():
 	return None
 
 def find_block(block_name, max_distance=64, count=10):
-    """
-    Find blocks of given type.
-    
-    Args:
-        block_name: Name of block to find (e.g., 'oak_log', 'dirt')
-        max_distance: How far to search (default: 64)
-        count: Maximum number of blocks to find (default: 10)
-    
-    Returns:
-        List of dicts with block info, sorted by distance (closest first):
-        [
-            {
-                'x': -367,
-                'y': 66, 
-                'z': -413,
-                'distance': 7.6,
-                'block': Block object
-            },
-            ...
-        ]
-        Returns empty list [] if no blocks found.
-    """
+
     global mcData
     
     # Load minecraft data for block IDs
@@ -166,21 +217,27 @@ def find_block(block_name, max_distance=64, count=10):
     return results
 
 def goto(x, y, z, radius=0.5):
-    movements = pathfinder.Movements(bot)
-    bot.pathfinder.setMovements(movements)
-    try :
-        bot.pathfinder.setGoal(pathfinder.goals.GoalNear(x, y, z, radius))
-    except:
-        print("fuckkkkkk")
-        bot.chat("fuckkkkk")
-        return
+    #movements = pathfinder.Movements(bot)
+    #bot.pathfinder.setMovements(movements)
+    #movements.scafoldingBlocks = (bot.registry.itemsByName['dirt'].id, bot.registry.itemsByName['netherrack'].id)
+    while True:
+        try:
+            movements = pathfinder.Movements(bot)
+            bot.pathfinder.setMovements(movements)
+            movements.scafoldingBlocks = (bot.registry.itemsByName['dirt'].id, bot.registry.itemsByName['netherrack'].id)
+            bot.pathfinder.setGoal(pathfinder.goals.GoalNear(x, y, z, radius))
+            break  # worked, move on
+        except:
+            print("fuckkkk")
+            bot.chat("fuckkkkk")
+            pass  # failed, try again
         
 def get_tree(type = 'oak'):
     tree = []
-    logs = find_block(f'{type}_log', max_distance=32, count=16)
+    logs = find_block(f'{type}_log', max_distance=32, count=10)
     if not logs:
         print(f"No {type} trees found nearby")
-        logs = find_block(f'{type}_log', max_distance=64, count=16)
+        logs = find_block(f'{type}_log', max_distance=64, count=10)
         if not logs:
             return None
     
@@ -214,6 +271,13 @@ def mine_tree(tree):
         time.sleep(1)
         if not bot.pathfinder.isMoving():
             print("Arrived at log, mining...")
+
+            try:
+                bot.equip(best_weapon, 'hand')
+                print(f'Equipped {best_weapon.name}!')
+            except Exception as e:
+                print(f"Failed to equip weapon: {e}")
+
             try:
                 t = bot.digTime(log['block'])
                 bot.dig(log['block'])
@@ -222,13 +286,51 @@ def mine_tree(tree):
                 print(f"Failed to mine block: {e}")
         print("mining log")
         #time.sleep(10)
-        
-        
+
+def pickup():
+    print("pickup")
+    item = bot.nearestEntity(
+        lambda entity: entity.name == 'item' and entity.metadata and entity.metadata[7] and entity.metsadata[7].itemId == 68
+    )
+    print(item)
+    if item:
+        goto(item.position.x, item.position.y, item.position.z)
+    else:
+        bot.chat("no items found")
+
+'''def pickup():
+    print("pickup")
+    item = bot.nearestEntity(
+        lambda entity: entity.name == 'item',
+        lambda item: item.metadata.itemId == "28"
+        )
+    print(item)
+    if item:
+        #print(str(item))  # or however you access the name
+        goto(item.position.x, item.position.y, item.position.z)
+    else:
+        bot.chat("no items found")
+
+    # const cow = bot.nearestEntity(entity => entity.name.toLowerCase() === 'cow') // we use .toLowercase() because in 1.8 cow was capitalized, for newer versions that can be omitted
+    # cow = bot.nearestEntity(lambda entity: entity.name.lower() == 'cow')
+    # item = bot.nearestEntity(lambda entity: entity.name == 'item')
+'''
+    
+def mine_amount_trees(amount:int = 5, type: str ='oak'):
+    loop_amount_shit_fuckkkkkkk = amount
+    while loop_amount_shit_fuckkkkkkk:
+        tree = get_tree(('oak'))
+        mine_tree(tree)
+        time.sleep(1)
+        pickup()
+        time.sleep(2)
+        loop_amount_shit_fuckkkkkkk -= 1 
         
 @On(bot,'end')
 def OnEnd(reason, *args):
-    print("kicked for" + reason)
-    MakeBot('chatter_again')
+    print('kicked')
+    #print("kicked for" + str(reason))
+    #MakeBot('choppah')
 
 @mcp.tool()
 async def send_message(message: str, ctx: Context) -> str:
